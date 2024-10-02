@@ -28,7 +28,7 @@ node('built-in')
 
 Declarative Pipeline:
 =============================
-npipeline
+pipeline
 {
     agent any
     stages
@@ -69,5 +69,230 @@ npipeline
                 deploy adapters: [tomcat9(credentialsId: '230fddb6-7cbb-498a-b57f-54a9e27c4ea8', path: '', url: 'http://172.31.1.73:8080')], contextPath: 'Prodapp', war: '**/*.war'
             }
         }
+    }
+}
+
+
+
+Post Actions:
+==============
+
+pipeline
+{
+    agent any
+    stages
+    {
+        stage('Continous Download')
+        {
+            steps
+            {
+                git 'https://github.com/intelliqittrainings/maven.git'
+            }
+        }
+        stage('Continous Build')
+        {
+            steps
+            {
+                sh 'mvn package'
+            }
+        }
+        stage('Continous Deploy')
+        {
+            steps
+            {
+                  deploy adapters: [tomcat9(credentialsId: '230fddb6-7cbb-498a-b57f-54a9e27c4ea8', path: '', url: 'http://172.31.1.230:8080')], contextPath: 'testapp', war: '**/*.war'
+            }
+        }
+        stage('Continous Testing')
+        {
+            steps
+            {
+                git 'https://github.com/intelliqittrainings/FunctionalTesting.git'
+                sh 'java -jar /var/lib/jenkins/workspace/ScriptedPipeline/testing.jar'
+            }
+        }
+        
+    }
+    post
+    {
+        success
+        {
+            deploy adapters: [tomcat9(credentialsId: '230fddb6-7cbb-498a-b57f-54a9e27c4ea8', path: '', url: 'http://172.31.1.73:8080')], contextPath: 'Prodapp', war: '**/*.war'
+        }
+        failure
+        {
+           mail bcc: '', body: '', cc: '', from: '', replyTo: '', subject: 'Pipeline Failed', to: 'kprabhanjan9@gmail.com' 
+        }
+    }
+}
+
+
+Exceptional Handling(DeclarativePipeline)
+===================================
+
+pipeline
+{
+    agent any
+    stages
+    {
+        stage('Contionous Download')
+        {
+            steps
+            {
+                script
+                {
+                    try
+                    {
+                        git 'https://github.com/intelliqittrainings/maven.git'
+                    }
+                    catch(Exception e1)
+                    {
+                        mail bcc: '', body: '', cc: '', from: '', replyTo: '', subject: 'Download Failed', to: 'git.admin@gmail.com'
+                        exit(1)
+                    }
+                }
+            }
+        }
+        stage('Continous Build')
+        {
+            steps
+            {
+             script
+             {
+                 try
+                 {
+                     sh 'mvn package'
+                 }
+                 catch(Exception e2)
+                 {
+                     mail bcc: '', body: '', cc: '', from: '', replyTo: '', subject: 'Download Failed', to: 'developteam@gmail.com'
+                     exit(1)
+                 }
+             }
+            }
+        }
+        stage('Continous Deploy')
+        {
+            steps
+            {
+                script
+                {
+                    try
+                    {
+                        deploy adapters: [tomcat9(credentialsId: '230fddb6-7cbb-498a-b57f-54a9e27c4ea8', path: '', url: 'http://172.31.1.230:8080')], contextPath: 'testapp', war: '**/*.war'
+                    }
+                    catch(Exception e3)
+                    {
+                        mail bcc: '', body: '', cc: '', from: '', replyTo: '', subject: 'Download Failed', to: 'middleware@gmail.com'
+                        exit(1)
+                    }
+                }
+            }
+        }
+        stage('Continous Testing')
+        {
+            steps
+            {
+                script
+                {
+                    try
+                    {
+                        git 'https://github.com/intelliqittrainings/FunctionalTesting.git'
+                        sh 'java -jar /var/lib/jenkins/workspace/DeclarativePipeline3/testing.jar'
+                    }
+                    catch(Exception e4)
+                    {
+                        mail bcc: '', body: '', cc: '', from: '', replyTo: '', subject: 'Download Failed', to: 'Testing.team@gmail.com'
+                        exit(1)
+                    }
+                }
+            }
+        }
+        stage('continous delivery')
+        {
+            steps
+            {
+                script
+                {
+                    try
+                    {
+                        deploy adapters: [tomcat9(credentialsId: '230fddb6-7cbb-498a-b57f-54a9e27c4ea8', path: '', url: 'http://172.31.1.73:8080')], contextPath: 'Prodapp', war: '**/*.war'
+                    }
+                    catch(Exception e5)
+                    {
+                        mail bcc: '', body: '', cc: '', from: '', replyTo: '', subject: 'Download Failed', to: 'delivery.team@gmail.com'
+                    }
+                    
+                }
+            }
+        }
+    }
+}
+
+
+Exceptionhandling(ScriptedPipeline)
+================================
+
+node('built-in') 
+{
+    stage('ContinousDownload') 
+    {
+                    try
+                    {
+                        git 'https://github.com/intelliqittrainings/maven.git'
+                    }
+                    catch(Exception e1)
+                    {
+                        mail bcc: '', body: '', cc: '', from: '', replyTo: '', subject: 'Download Failed', to: 'git.admin@gmail.com'
+                        exit(1)
+                    }
+    }
+    stage('continousBuild')
+    {
+                 try
+                 {
+                     sh 'mvn package'
+                 }
+                 catch(Exception e2)
+                 {
+                     mail bcc: '', body: '', cc: '', from: '', replyTo: '', subject: 'Download Failed', to: 'developteam@gmail.com'
+                     exit(1)
+                 }
+    }
+    stage('continousDeployment')
+    {
+                    try
+                    {
+                        deploy adapters: [tomcat9(credentialsId: '230fddb6-7cbb-498a-b57f-54a9e27c4ea8', path: '', url: 'http://172.31.1.230:8080')], contextPath: 'testapp', war: '**/*.war'
+                    }
+                    catch(Exception e3)
+                    {
+                        mail bcc: '', body: '', cc: '', from: '', replyTo: '', subject: 'Download Failed', to: 'middleware@gmail.com'
+                        exit(1)
+                    }
+    }
+    stage('ContinousTesting')
+    {
+                    try
+                    {
+                        git 'https://github.com/intelliqittrainings/FunctionalTesting.git'
+                        sh 'java -jar /var/lib/jenkins/workspace/ScriptedPipeline1/testing.jar'
+                    }
+                    catch(Exception e4)
+                    {
+                        mail bcc: '', body: '', cc: '', from: '', replyTo: '', subject: 'Download Failed', to: 'Testing.team@gmail.com'
+                        exit(1)
+                    }
+     }
+    stage('ContinousDelivery')
+    {
+                    try
+                    {
+                        deploy adapters: [tomcat9(credentialsId: '230fddb6-7cbb-498a-b57f-54a9e27c4ea8', path: '', url: 'http://172.31.1.73:8080')], contextPath: 'Prodapp', war: '**/*.war'
+                    }
+                    catch(Exception e5)
+                    {
+                        mail bcc: '', body: '', cc: '', from: '', replyTo: '', subject: 'Download Failed', to: 'delivery.team@gmail.com'
+                    }
     }
 }
