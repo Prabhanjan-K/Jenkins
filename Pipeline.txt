@@ -296,3 +296,115 @@ node('built-in')
                     }
     }
 }
+
+
+Declarative Pipeline(without pipeline syntax)
+=======================================
+
+pipeline
+{
+    agent any
+    stages
+    {
+        stage('Continous Download')
+        {
+            steps
+            {
+                git 'https://github.com/intelliqittrainings/maven.git'
+            }
+        }
+        stage('Continous Build')
+        {
+            steps
+            {
+                sh 'mvn package'
+            }
+        }
+        stage('continous Deploy')
+        {
+            steps
+            {
+                sh 'scp /var/lib/jenkins/workspace/DeclarativePipeline4/webapp/target/webapp.war ubuntu@172.31.1.230:/var/lib/tomcat10/webapps/testapp.war'
+            }
+        }
+        stage('Continous Testing')
+        {
+            steps
+            {
+                git 'https://github.com/intelliqittrainings/FunctionalTesting.git'
+                sh 'java -jar /var/lib/jenkins/workspace/DeclarativePipeline4/testing.jar'
+            }
+        }
+        stage('Continous Delivery')
+        {
+            steps
+            {
+                sh 'scp /var/lib/jenkins/workspace/DeclarativePipeline4/webapp/target/webapp.war ubuntu@172.31.1.73:/var/lib/tomcat10/webapps/prodapp.war'
+            }
+        }
+    }
+}
+
+DeclarativePipelinewithSharedLibraries:
+===================================
+
+@Library('Library')_
+
+pipeline
+{
+    agent any
+    stages
+    {
+        stage('Continous Download')
+        {
+            steps
+            {
+                script
+                {
+                    cicd.gitDownload("maven")
+                }
+            }
+        }
+        stage('Continous Build')
+        {
+            steps
+            {
+                script
+                {
+                    cicd.buildArtifact()
+                }
+            }
+        }
+        stage('Continous deploy')
+        {
+            steps
+            {
+                script
+                {
+                    cicd.deploytomcat("DeclarativePipelinewithSharedLibraries","172.31.1.230","testapp")
+                }
+            }
+        }
+        stage('Continous testing')
+        {
+            steps
+            {
+                script
+                {
+                    cicd.gitDownload("FunctionalTesting")
+                    cicd.testing("DeclarativePipelinewithSharedLibraries")
+                }
+            }
+        }
+        stage('Continous Delivery')
+        {
+            steps
+            {
+                script
+                {
+                    cicd.deploytomcat("DeclarativePipelinewithSharedLibraries","172.31.1.73","prodapp")
+                }
+            }
+        }
+    }
+}
